@@ -3,24 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whole Meat: Systemic Biology Network</title>
+    <title>MCAT Master Metabolic Map</title>
     <style>
         :root {
-            --bg: #050505;
-            --panel: #121212;
-            --text: #e0e0e0;
-            --dim: #666;
+            --bg: #0a0a0f;
+            --panel: #161622;
+            --text: #e2e8f0;
+            --dim: #64748b;
             
             /* Pathway Colors */
             --glucose: #ff9f1c;    /* Orange */
             --fat: #2ec4b6;        /* Teal */
-            --protein: #e71d36;    /* Red */
-            --signal: #c77dff;     /* Purple */
+            --nitrogen: #e71d36;   /* Red */
             --oxygen: #3a86ff;     /* Blue */
+            --signal: #c77dff;     /* Purple */
+            --energy: #ffd60a;     /* Yellow */
         }
 
+        * { box-sizing: border-box; }
+
         body {
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
@@ -29,23 +32,26 @@
             overflow: hidden;
         }
 
-        /* --- LEFT SIDEBAR (CONTROLS) --- */
+        /* --- SIDEBAR CONTROLS --- */
         .sidebar {
-            width: 280px;
+            width: 320px;
             background: var(--panel);
             border-right: 1px solid #333;
-            padding: 20px;
+            padding: 25px;
             display: flex;
             flex-direction: column;
             z-index: 10;
-            box-shadow: 5px 0 15px rgba(0,0,0,0.8);
+            box-shadow: 5px 0 25px rgba(0,0,0,0.8);
+            overflow-y: auto;
         }
 
-        h1 { font-size: 18px; margin-top: 0; color: var(--glucose); text-transform: uppercase; }
-        h2 { font-size: 12px; color: var(--dim); border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 20px;}
+        h1 { font-size: 20px; margin-top: 0; color: var(--glucose); letter-spacing: 1px; text-transform: uppercase; }
+        .subtitle { font-size: 12px; color: var(--dim); margin-bottom: 20px; line-height: 1.5; }
+
+        h2 { font-size: 12px; color: var(--dim); border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 20px; text-transform: uppercase;}
 
         button {
-            background: #1e1e1e;
+            background: #1e1e2d;
             color: var(--text);
             border: 1px solid #333;
             padding: 12px;
@@ -55,85 +61,104 @@
             font-family: inherit;
             font-size: 13px;
             transition: all 0.2s;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
         }
 
-        button:hover { background: #2a2a2a; border-color: #555; }
-        button.active { background: #333; border-color: var(--text); border-left: 4px solid var(--glucose); }
+        button:hover { background: #2a2a3d; border-color: #555; }
+        button.active { background: #333; border-color: var(--glucose); border-left: 4px solid var(--glucose); font-weight: bold; }
 
-        /* --- MAIN CANVAS AREA --- */
+        /* --- MAIN CANVAS --- */
         .canvas {
             flex: 1;
             position: relative;
             background-image: 
-                radial-gradient(circle at 50% 50%, #111 0%, #050505 100%),
-                linear-gradient(#1a1a1a 1px, transparent 1px),
-                linear-gradient(90deg, #1a1a1a 1px, transparent 1px);
+                radial-gradient(circle at 50% 50%, #151520 0%, #0a0a0f 100%),
+                linear-gradient(#1a1a2e 1px, transparent 1px),
+                linear-gradient(90deg, #1a1a2e 1px, transparent 1px);
             background-size: 100% 100%, 40px 40px, 40px 40px;
             overflow: hidden;
         }
 
-        /* SVG for connection lines */
+        /* SVG Lines */
         svg {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
         }
 
-        path {
+        .path-line {
             fill: none;
             stroke: #222;
-            stroke-width: 3;
-            transition: all 0.5s ease;
+            stroke-width: 4;
+            transition: stroke 0.4s ease;
         }
 
-        /* Animated pulses (Substrates/Hormones) */
-        .pulse {
-            stroke-dasharray: 10, 50;
-            animation: flow 2s linear infinite;
+        /* Animated Particles */
+        .particle {
+            fill: none;
+            stroke-dasharray: 8, 40;
+            stroke-width: 5;
+            stroke-linecap: round;
+            animation: flow 1.5s linear infinite;
             opacity: 0;
-            transition: opacity 0.5s ease, stroke 0.5s ease;
+            transition: opacity 0.4s ease, stroke 0.4s ease;
         }
 
         @keyframes flow {
-            to { stroke-dashoffset: -60; }
+            to { stroke-dashoffset: -48; }
         }
 
         /* --- ORGAN NODES --- */
         .node {
             position: absolute;
-            width: 120px;
-            padding: 15px 10px;
-            background: #1a1a1a;
+            background: #1e1e2d;
             border: 2px solid #444;
-            border-radius: 8px;
-            text-align: center;
+            border-radius: 12px;
+            padding: 15px;
+            width: 160px;
             transform: translate(-50%, -50%);
             z-index: 5;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
-        .node-title { font-weight: bold; font-size: 14px; color: #fff; margin-bottom: 5px; letter-spacing: 1px;}
-        .node-status { font-size: 10px; color: var(--dim); line-height: 1.2; }
+        .node:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            border-color: var(--dim);
+            z-index: 20;
+        }
 
-        /* Active Node Glows */
-        .node.active-glucose { border-color: var(--glucose); box-shadow: 0 0 20px rgba(255, 159, 28, 0.3); }
-        .node.active-fat { border-color: var(--fat); box-shadow: 0 0 20px rgba(46, 196, 182, 0.3); }
-        .node.active-protein { border-color: var(--protein); box-shadow: 0 0 20px rgba(231, 29, 54, 0.3); }
-        .node.active-oxygen { border-color: var(--oxygen); box-shadow: 0 0 20px rgba(58, 134, 255, 0.3); }
+        .node-header { font-weight: bold; font-size: 14px; color: #fff; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .node-desc { font-size: 11px; color: var(--dim); line-height: 1.4; }
         
-        /* Specific Node Positions */
-        #node-brain { top: 15%; left: 50%; }
-        #node-blood { top: 40%; left: 50%; width: 150px; }
-        #node-liver { top: 75%; left: 25%; width: 140px; }
-        #node-muscle { top: 75%; left: 75%; }
-        #node-adipose { top: 40%; left: 15%; }
-        #node-kidney { top: 85%; left: 50%; }
+        /* Pathway badges inside nodes */
+        .badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+        .badge { font-size: 9px; padding: 2px 5px; border-radius: 3px; background: #111; color: #888; border: 1px solid #333; }
 
-        /* Legend */
-        .legend { margin-top: auto; font-size: 11px; color: var(--dim); }
-        .legend-item { display: flex; align-items: center; margin-bottom: 5px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+        /* State Colors */
+        .node.active-glucose { border-color: var(--glucose); box-shadow: 0 0 20px rgba(255,159,28,0.3); }
+        .node.active-fat { border-color: var(--fat); box-shadow: 0 0 20px rgba(46,196,182,0.3); }
+        .node.active-nitrogen { border-color: var(--nitrogen); box-shadow: 0 0 20px rgba(231,29,54,0.3); }
+        .node.active-oxygen { border-color: var(--oxygen); box-shadow: 0 0 20px rgba(58,134,255,0.3); }
+
+        /* Tooltip */
+        #tooltip {
+            position: absolute;
+            background: #000;
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 100;
+            width: 220px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+        }
 
     </style>
 </head>
@@ -141,196 +166,244 @@
 
     <!-- SIDEBAR -->
     <div class="sidebar">
-        <h1>Systemic Physiology</h1>
-        <p style="font-size: 12px; color: #888;">Select a physiological state to trace the flow of metabolites and hormones between organs.</p>
+        <h1>Systems Network</h1>
+        <div class="subtitle">This map connects 20 major metabolic pathways across 6 organ systems. Select a physiological state to trace the flow of metabolites.</div>
 
-        <h2>Metabolic States</h2>
-        <button onclick="setState('fed')" class="active" id="btn-fed">Fed State (Post-Meal)</button>
+        <h2>Physiological States</h2>
+        <button onclick="setState('fed')" class="active" id="btn-fed">Fed (Post-Meal)</button>
         <button onclick="setState('fasting')" id="btn-fasting">Fasting / Starvation</button>
         <button onclick="setState('exercise')" id="btn-exercise">Intense Exercise</button>
         
-        <h2>Perturbations</h2>
-        <button onclick="setState('diabetes')" id="btn-diabetes">Type 1 Diabetes (No Insulin)</button>
-        <button onclick="setState('cyanide')" id="btn-cyanide">Cyanide Toxicity</button>
+        <h2>Pathology / Toxins</h2>
+        <button onclick="setState('cyanide')" id="btn-cyanide">Cyanide (Complex IV)</button>
+        <button onclick="setState('dka')" id="btn-dka">Diabetic Ketoacidosis</button>
+        <button onclick="setState('g6pd')" id="btn-g6pd">G6PD Deficiency (RBC)</button>
 
-        <div class="legend">
-            <div class="legend-item"><div class="dot" style="background: var(--glucose);"></div>Glucose / Glycogen</div>
-            <div class="legend-item"><div class="dot" style="background: var(--fat);"></div>Fatty Acids / Ketones</div>
-            <div class="legend-item"><div class="dot" style="background: var(--protein);"></div>Amino Acids / Urea</div>
-            <div class="legend-item"><div class="dot" style="background: var(--signal);"></div>Hormonal Signals</div>
-            <div class="legend-item"><div class="dot" style="background: var(--oxygen);"></div>Oxygen / RBCs</div>
+        <div style="margin-top: auto; font-size: 11px; color: #555; padding-top: 20px;">
+            <strong>Legend:</strong> Lines represent substrate flow. Hover over any organ to read its specific active pathways.
         </div>
     </div>
 
-    <!-- MAIN CANVAS -->
-    <div class="canvas">
-        
-        <!-- SVG for pathways -->
-        <svg id="pathways">
-            <!-- Hormone Signals -->
-            <path id="path-insulin" d="M 400 600 Q 400 400 250 400" /> <!-- Pancreas to Blood -->
-            <path id="path-glucagon" d="M 400 600 Q 200 600 200 300" /> 
+    <!-- CANVAS -->
+    <div class="canvas" id="canvas">
+        <svg id="svg-layer">
+            <!-- Paths (Static structure, animated via JS) -->
             
-            <!-- Blood to Organs (Oxygen/Glucose) -->
-            <path id="path-blood-brain" d="M 400 400 L 400 150" />
-            <path id="path-blood-muscle" d="M 400 400 L 650 550" />
-            <path id="path-blood-liver" d="M 400 400 L 250 550" />
-            
-            <!-- Organ to Blood (Metabolites) -->
-            <path id="path-adipose-blood" d="M 200 300 L 350 400" />
-            <path id="path-liver-blood" d="M 250 550 L 380 400" />
-            <path id="path-muscle-blood" d="M 650 550 L 420 400" />
-            
-            <!-- Liver to Kidney (Urea) -->
-            <path id="path-urea" d="M 250 550 L 400 750" />
+            <!-- Blood -> Organs -->
+            <path id="path-blood-muscle" class="path-line" d="M 500 400 L 750 600" />
+            <path id="path-blood-liver" class="path-line" d="M 500 400 L 250 600" />
+            <path id="path-blood-adipose" class="path-line" d="M 500 400 L 250 200" />
+            <path id="path-blood-rbc" class="path-line" d="M 500 400 L 750 200" />
+            <path id="path-blood-mito" class="path-line" d="M 500 400 L 500 650" />
 
-            <!-- Animated Pulses (overlay) -->
-            <use href="#path-liver-blood" class="pulse" id="pulse-glucose-liver" style="stroke: var(--glucose); stroke-width: 4px;"/>
-            <use href="#path-blood-brain" class="pulse" id="pulse-glucose-brain" style="stroke: var(--glucose); stroke-width: 4px;"/>
-            <use href="#path-blood-muscle" class="pulse" id="pulse-glucose-muscle" style="stroke: var(--glucose); stroke-width: 4px;"/>
+            <!-- Organ -> Blood -->
+            <path id="path-muscle-blood" class="path-line" d="M 730 570 L 520 420" />
+            <path id="path-liver-blood" class="path-line" d="M 270 570 L 480 420" />
+            <path id="path-adipose-blood" class="path-line" d="M 270 230 L 480 380" />
+            <path id="path-rbc-blood" class="path-line" d="M 730 230 L 520 380" />
+
+            <!-- Inter-organ connections (Liver <-> Mito, Liver <-> RBC) -->
+            <path id="path-liver-mito" class="path-line" d="M 250 600 L 450 650" />
+
+            <!-- Animated Particles -->
+            <use href="#path-blood-muscle" class="particle" id="p-glucose-muscle" style="stroke: var(--glucose);" />
+            <use href="#path-muscle-blood" class="particle" id="p-lactate-muscle" style="stroke: var(--energy);" />
             
-            <use href="#path-adipose-blood" class="pulse" id="pulse-fat" style="stroke: var(--fat); stroke-width: 4px;"/>
-            <use href="#path-liver-blood" class="pulse" id="pulse-ketones" style="stroke: var(--fat); stroke-width: 4px;"/>
-            <use href="#path-blood-brain" class="pulse" id="pulse-ketones-brain" style="stroke: var(--fat); stroke-width: 4px;"/>
+            <use href="#path-blood-liver" class="particle" id="p-glucose-liver" style="stroke: var(--glucose);" />
+            <use href="#path-liver-blood" class="particle" id="p-glucose-liver-out" style="stroke: var(--glucose);" />
+            <use href="#path-liver-blood" class="particle" id="p-ketones-liver" style="stroke: var(--fat);" />
             
-            <use href="#path-urea" class="pulse" id="pulse-urea" style="stroke: var(--protein); stroke-width: 4px;"/>
+            <use href="#path-blood-adipose" class="particle" id="p-glucose-adipose" style="stroke: var(--glucose);" />
+            <use href="#path-adipose-blood" class="particle" id="p-fat-adipose" style="stroke: var(--fat);" />
             
-            <use href="#path-insulin" class="pulse" id="pulse-insulin" style="stroke: var(--signal); stroke-width: 4px;"/>
-            <use href="#path-glucagon" class="pulse" id="pulse-glucagon" style="stroke: var(--signal); stroke-width: 4px;"/>
+            <use href="#path-blood-rbc" class="particle" id="p-glucose-rbc" style="stroke: var(--glucose);" />
+            <use href="#path-rbc-blood" class="particle" id="p-o2-rbc" style="stroke: var(--oxygen);" />
+
+            <use href="#path-blood-mito" class="particle" id="p-pyruvate-mito" style="stroke: var(--energy);" />
         </svg>
 
         <!-- NODES -->
-        <div class="node" id="node-brain">
-            <div class="node-title">BRAIN</div>
-            <div class="node-status" id="status-brain">Uses Glucose</div>
+        <!-- Center -->
+        <div class="node" id="node-blood" style="top: 40%; left: 50%; width: 180px;" onmouseenter="showTooltip(event, 'blood')" onmouseleave="hideTooltip()">
+            <div class="node-header">Bloodstream <span style="color:var(--oxygen);">🩸</span></div>
+            <div class="node-desc">Universal transport hub.</div>
+            <div class="badges">
+                <span class="badge">pH Buffer</span>
+                <span class="badge">Bohr Effect</span>
+            </div>
         </div>
 
-        <div class="node" id="node-blood">
-            <div class="node-title">BLOODSTREAM</div>
-            <div class="node-status" id="status-blood">pH: 7.4 | O₂: Normal</div>
+        <!-- Top Left -->
+        <div class="node" id="node-adipose" style="top: 20%; left: 25%;" onmouseenter="showTooltip(event, 'adipose')" onmouseleave="hideTooltip()">
+            <div class="node-header">Adipose Tissue <span style="color:var(--fat);">🧈</span></div>
+            <div class="node-desc">Fat storage and mobilization.</div>
+            <div class="badges">
+                <span class="badge">Lipogenesis</span>
+                <span class="badge">Lipolysis</span>
+            </div>
         </div>
 
-        <div class="node" id="node-liver">
-            <div class="node-title">LIVER</div>
-            <div class="node-status" id="status-liver">Glycogenesis</div>
+        <!-- Top Right -->
+        <div class="node" id="node-rbc" style="top: 20%; left: 75%;" onmouseenter="showTooltip(event, 'rbc')" onmouseleave="hideTooltip()">
+            <div class="node-header">Red Blood Cells <span style="color:var(--nitrogen);">🩸</span></div>
+            <div class="node-desc">Oxygen delivery. No mitochondria!</div>
+            <div class="badges">
+                <span class="badge">Glycolysis Only</span>
+                <span class="badge">PPP (NADPH)</span>
+                <span class="badge">2,3-BPG</span>
+            </div>
         </div>
 
-        <div class="node" id="node-muscle">
-            <div class="node-title">MUSCLE</div>
-            <div class="node-status" id="status-muscle">Aerobic Resp.</div>
+        <!-- Bottom Left -->
+        <div class="node" id="node-liver" style="top: 60%; left: 25%; width: 180px;" onmouseenter="showTooltip(event, 'liver')" onmouseleave="hideTooltip()">
+            <div class="node-header">Liver <span style="color:var(--nitrogen);">🫀</span></div>
+            <div class="node-desc">The master metabolic factory.</div>
+            <div class="badges">
+                <span class="badge">Gluconeogenesis</span>
+                <span class="badge">Urea Cycle</span>
+                <span class="badge">Ketogenesis</span>
+                <span class="badge">Glycogenesis</span>
+            </div>
         </div>
 
-        <div class="node" id="node-adipose">
-            <div class="node-title">ADIPOSE</div>
-            <div class="node-status" id="status-adipose">Fat Storage</div>
-        </div>
-        
-        <div class="node" id="node-kidney" style="border-style: dashed;">
-            <div class="node-title" style="font-size: 11px;">KIDNEY</div>
-            <div class="node-status">Urea Excretion</div>
+        <!-- Bottom Right -->
+        <div class="node" id="node-muscle" style="top: 60%; left: 75%;" onmouseenter="showTooltip(event, 'muscle')" onmouseleave="hideTooltip()">
+            <div class="node-header">Skeletal Muscle <span style="color:var(--energy);">💪</span></div>
+            <div class="node-desc">High ATP demand tissue.</div>
+            <div class="badges">
+                <span class="badge">Glycolysis</span>
+                <span class="badge">Cori Cycle</span>
+                <span class="badge">β-Oxidation</span>
+            </div>
         </div>
 
+        <!-- Bottom Center -->
+        <div class="node" id="node-mito" style="top: 65%; left: 50%; width: 170px;" onmouseenter="showTooltip(event, 'mito')" onmouseleave="hideTooltip()">
+            <div class="node-header">Mitochondria <span style="color:var(--energy);">⚡</span></div>
+            <div class="node-desc">Universal energy engine.</div>
+            <div class="badges">
+                <span class="badge">TCA Cycle</span>
+                <span class="badge">ETC / OxPhos</span>
+                <span class="badge">Malate-Asp Shuttle</span>
+            </div>
+        </div>
+
+        <!-- Tooltip Container -->
+        <div id="tooltip"></div>
     </div>
 
     <script>
-        // Helper to reset all visual active states
-        function clearVisuals() {
-            document.querySelectorAll('.pulse').forEach(el => el.style.opacity = '0');
+        const tooltip = document.getElementById('tooltip');
+
+        // Tooltip Content Database
+        const infoData = {
+            blood: "<strong>Bloodstream</strong><br>Transports Glucose, Lactate, Fatty Acids, Ketones, O2, and Urea between organs. Contains the bicarbonate buffer system (CO2 + H2O ⇌ H2CO3 ⇌ H+ + HCO3-).",
+            adipose: "<strong>Adipose</strong><br><b>Fed:</b> Insulin stimulates Lipoprotein Lipase (LPL) to store fat.<br><b>Fasting:</b> Glucagon/Epinephrine stimulate Hormone-Sensitive Lipase (HSL) to release free fatty acids and glycerol.",
+            rbc: "<strong>Red Blood Cells</strong><br>Lacks mitochondria. Relies entirely on anaerobic glycolysis. Uses the Pentose Phosphate Pathway (PPP) to generate NADPH to protect against oxidative damage. Produces 2,3-BPG to regulate O2 unloading.",
+            liver: "<strong>Liver</strong><br>Performs the Urea Cycle (clearing ammonia via CPS1). Performs Gluconeogenesis (using lactate, glycerol, amino acids). Produces Ketone bodies during starvation. Stores glycogen.",
+            muscle: "<strong>Skeletal Muscle</strong><br>Uses ATP for contraction. Contains the Cori Cycle (converts glucose to lactate, sends to liver). Relies on the Malate-Aspartate shuttle to move NADH into mitochondria. Uses the Glucose-Alanine cycle to dump nitrogen.",
+            mito: "<strong>Mitochondria</strong><br>Houses the Pyruvate Dehydrogenase Complex (PDC), TCA Cycle, and β-Oxidation. Uses the Electron Transport Chain and ATP Synthase to generate the vast majority of ATP."
+        };
+
+        function showTooltip(e, id) {
+            tooltip.innerHTML = infoData[id];
+            tooltip.style.opacity = '1';
+            tooltip.style.left = (e.pageX + 15) + 'px';
+            tooltip.style.top = (e.pageY + 15) + 'px';
+        }
+
+        function hideTooltip() {
+            tooltip.style.opacity = '0';
+        }
+
+        // --- STATE ENGINE ---
+        function resetVisuals() {
+            document.querySelectorAll('.particle').forEach(el => el.style.opacity = '0');
             document.querySelectorAll('.node').forEach(el => {
-                el.className = 'node';
-                el.querySelector('.node-status').innerText = 'Baseline';
+                el.className = 'node'; // Strip active classes
             });
             document.querySelectorAll('.sidebar button').forEach(el => el.classList.remove('active'));
         }
 
         function setState(state) {
-            clearVisuals();
+            resetVisuals();
             document.getElementById('btn-' + state).classList.add('active');
 
-            const brain = document.getElementById('node-brain');
-            const blood = document.getElementById('node-blood');
             const liver = document.getElementById('node-liver');
+            const mito = document.getElementById('node-mito');
             const muscle = document.getElementById('node-muscle');
+            const rbc = document.getElementById('node-rbc');
             const adipose = document.getElementById('node-adipose');
-
-            const brainTxt = document.getElementById('status-brain');
-            const bloodTxt = document.getElementById('status-blood');
-            const liverTxt = document.getElementById('status-liver');
-            const muscleTxt = document.getElementById('status-muscle');
-            const adiposeTxt = document.getElementById('status-adipose');
+            const blood = document.getElementById('node-blood');
 
             if (state === 'fed') {
-                // Hormone
-                document.getElementById('pulse-insulin').style.opacity = '1';
-                // Glucose Flow
-                document.getElementById('pulse-glucose-liver').style.opacity = '1'; // Liver absorbing
-                document.getElementById('pulse-glucose-brain').style.opacity = '1'; // Brain using
-                document.getElementById('pulse-glucose-muscle').style.opacity = '1'; // Muscle absorbing
-                
-                blood.classList.add('active-glucose'); bloodTxt.innerText = "High Glucose / Insulin";
-                liver.classList.add('active-glucose'); liverTxt.innerText = "Glycogenesis (Storing)";
-                muscle.classList.add('active-glucose'); muscleTxt.innerText = "Glycogenesis / Oxphos";
-                adipose.classList.add('active-glucose'); adiposeTxt.innerText = "Lipogenesis (Storing Fat)";
-                brainTxt.innerText = "Glucose Oxidation";
+                // Glucose flows everywhere
+                document.getElementById('p-glucose-muscle').style.opacity = '1';
+                document.getElementById('p-glucose-liver').style.opacity = '1';
+                document.getElementById('p-glucose-adipose').style.opacity = '1';
+                document.getElementById('p-glucose-rbc').style.opacity = '1';
+                document.getElementById('p-o2-rbc').style.opacity = '1';
+                document.getElementById('p-pyruvate-mito').style.opacity = '1';
+
+                liver.classList.add('active-glucose');
+                muscle.classList.add('active-glucose');
+                adipose.classList.add('active-glucose');
+                rbc.classList.add('active-glucose');
+                mito.classList.add('active-oxygen');
+                blood.classList.add('active-glucose');
             } 
             else if (state === 'fasting') {
-                // Hormone
-                document.getElementById('pulse-glucagon').style.opacity = '1';
-                // Fat Flow
-                document.getElementById('pulse-fat').style.opacity = '1';
-                document.getElementById('pulse-ketones').style.opacity = '1';
-                document.getElementById('pulse-ketones-brain').style.opacity = '1';
-                // Glucose Flow (Liver making it for brain)
-                document.getElementById('pulse-glucose-liver').style.opacity = '1';
-                document.getElementById('pulse-glucose-brain').style.opacity = '1';
-                // Protein/Urea
-                document.getElementById('pulse-urea').style.opacity = '1';
+                // Fat from adipose to blood to organs
+                document.getElementById('p-fat-adipose').style.opacity = '1';
+                document.getElementById('p-glucose-liver-out').style.opacity = '1'; // Liver making glucose
+                document.getElementById('p-ketones-liver').style.opacity = '1';
+                document.getElementById('p-o2-rbc').style.opacity = '1';
 
-                blood.classList.add('active-glucose'); bloodTxt.innerText = "Low Glucose / High Glucagon";
-                liver.classList.add('active-fat'); liverTxt.innerText = "Gluconeogenesis & Ketogenesis";
-                adipose.classList.add('active-fat'); adiposeTxt.innerText = "Lipolysis (Breaking down fat)";
-                muscle.classList.add('active-fat'); muscleTxt.innerText = "Using Fatty Acids";
-                brain.classList.add('active-fat'); brainTxt.innerText = "Using Ketones & Glucose";
+                liver.classList.add('active-fat');
+                adipose.classList.add('active-fat');
+                mito.classList.add('active-fat');
+                blood.classList.add('active-fat');
             }
             else if (state === 'exercise') {
-                // Glucose flow from liver to muscle
-                document.getElementById('pulse-glucagon').style.opacity = '1';
-                document.getElementById('pulse-glucose-liver').style.opacity = '1';
-                document.getElementById('pulse-glucose-muscle').style.opacity = '1';
+                // Muscle takes glucose, dumps lactate
+                document.getElementById('p-glucose-muscle').style.opacity = '1';
+                document.getElementById('p-lactate-muscle').style.opacity = '1';
+                document.getElementById('p-o2-rbc').style.opacity = '1';
                 
-                blood.classList.add('active-glucose'); bloodTxt.innerText = "Lactic Acid rising";
-                liver.classList.add('active-glucose'); liverTxt.innerText = "Cori Cycle (Clearing Lactate)";
-                muscle.classList.add('active-glucose'); muscleTxt.innerText = "Anaerobic Glycolysis";
-                brainTxt.innerText = "Normal Blood Flow";
-            }
-            else if (state === 'diabetes') {
-                // No insulin pulse. Massive glucagon pulse.
-                document.getElementById('pulse-glucagon').style.opacity = '1';
-                // Liver dumping glucose
-                document.getElementById('pulse-glucose-liver').style.opacity = '1';
-                // Adipose dumping fat
-                document.getElementById('pulse-fat').style.opacity = '1';
-                document.getElementById('pulse-ketones').style.opacity = '1';
-                document.getElementById('pulse-ketones-brain').style.opacity = '1';
-
-                blood.classList.add('active-protein'); bloodTxt.innerText = "Hyperglycemia / Acidosis (pH 7.1)";
-                liver.classList.add('active-fat'); liverTxt.innerText = "Uncontrolled Ketogenesis";
-                adipose.classList.add('active-fat'); adiposeTxt.innerText = "Lipolysis";
-                muscle.classList.add('active-fat'); muscleTxt.innerText = "Starvation Mode (No Glucose Uptake)";
-                brain.classList.add('active-fat'); brainTxt.innerText = "Ketone Metabolism";
+                muscle.classList.add('active-glucose');
+                liver.classList.add('active-glucose'); // Cori cycle
+                blood.classList.add('active-oxygen');
             }
             else if (state === 'cyanide') {
-                // Oxygen exists, but cannot be used.
-                blood.classList.add('active-oxygen'); bloodTxt.innerText = "Normal O₂ / pH 7.1 (Lactic Acid)";
-                muscle.classList.add('active-protein'); muscleTxt.innerText = "OxPhos BLOCKED. Anaerobic only.";
-                brain.classList.add('active-protein'); brainTxt.innerText = "Cellular Asphyxia";
-                liverTxt.innerText = "Clearing Lactate (Overwhelmed)";
-                liver.classList.add('active-protein');
+                // O2 is there, but Mito fails.
+                document.getElementById('p-o2-rbc').style.opacity = '1';
+                document.getElementById('p-lactate-muscle').style.opacity = '1'; // Backup glycolysis
+                
+                mito.classList.add('active-nitrogen'); // Red alert
+                muscle.classList.add('active-glucose');
+                blood.classList.add('active-nitrogen');
+            }
+            else if (state === 'dka') {
+                // Massive fat dump, massive ketones
+                document.getElementById('p-fat-adipose').style.opacity = '1';
+                document.getElementById('p-ketones-liver').style.opacity = '1';
+                
+                // Turn ketone line red to show acidosis
+                document.getElementById('p-ketones-liver').style.stroke = 'var(--nitrogen)';
+                liver.classList.add('active-nitrogen');
+                adipose.classList.add('active-fat');
+                blood.classList.add('active-nitrogen');
+            }
+            else if (state === 'g6pd') {
+                // RBC is dying
+                rbc.classList.add('active-nitrogen');
+                blood.classList.add('active-nitrogen');
+                document.getElementById('p-glucose-rbc').style.opacity = '0.5'; // struggling
             }
         }
 
         // Initialize
-        setState('fed');
+        setTimeout(() => setState('fed'), 100);
     </script>
 </body>
 </html>
